@@ -1,8 +1,10 @@
-import books from './dataSet.js';
+import Book from '../config/db.js';
 
 export const resolvers = {
     Query: {
-        books: () => books,
+        books: async () => {
+            const books = await Book.findAll();
+            return books;
+        }
     }
-}
-
+};
