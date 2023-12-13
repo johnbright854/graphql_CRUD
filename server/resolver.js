@@ -1,4 +1,4 @@
-import Book from '../config/db.js';
+import Book from './db.js';
 import { Op } from 'sequelize';
 
 export const resolvers = {

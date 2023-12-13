@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphQL AJAX Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .search{
+      top: 50%;
+    }
+    #searchBar {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+
+<div class="search"></div><input type="text" id="searchBar" placeholder="Type your search...">
+
+<!-- <button id="getData">Get Data</button> -->
+
+ <!-- Results Container  -->
+<div id="results"></div>
+</div>
+<script>
+
+// GraphQL endpoint URL
+const endpoint = 'http://localhost:4000/graphql';
+
+// Results container
+const resultsContainer = document.getElementById('results');
+
+// Attach an event listener to the search bar
+const searchBar = document.getElementById('searchBar');
+searchBar.addEventListener('input', debounce(handleSearch, 300));
+
+function handleSearch() {
+  const searchTerm = searchBar.value.trim();
+
+  if (!searchTerm) {
+    resultsContainer.innerHTML = '';
+    return;
+  }
+
+  // GraphQL query
+  const query = `
+    query SearchBook($searchInput: String!) {
+      searchBook(searchInput: $searchInput) {
+        genre
+        title
+      }
+    }
+  `;
+  const variables = {
+    searchInput: searchTerm,
+  };
+
+  // Make a request to the GraphQL endpoint using fetch
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any additional headers if required
+    },
+    body: JSON.stringify({
+    query: query,
+    variables: variables,
+  }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Handle the GraphQL response data
+    displayResults(data);
+  })
+  .catch(error => {
+    // Handle errors
+    console.error('Error:', error);
+  });
+}
+
+
+function displayResults(data) {
+  // Clear previous results
+  resultsContainer.innerHTML = '';
+
+  // Check if there are any results
+  const books = data?.data?.searchBook;
+
+  if (books && books.length > 0) {
+    // Create a container for the results
+    const resultsList = document.createElement('ul');
+
+    // Iterate over the results and create list items
+    books.forEach(book => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `${book.title} - ${book.genre}`;
+      resultsList.appendChild(listItem);
+    });
+
+    // Append the results list to the container
+    resultsContainer.appendChild(resultsList);
+  } else {
+    // Display a message if there are no results
+    resultsContainer.textContent = 'No results found.';
+  }
+}
+
+// Simple debounce function to limit the number of API requests
+function debounce(func, delay) {
+  let timeout;
+  return function () {
+    const context = this;
+    const args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func.apply(context, args);
+    }, delay);
+  };
+}
+</script>
+
+</body>
+</html>
